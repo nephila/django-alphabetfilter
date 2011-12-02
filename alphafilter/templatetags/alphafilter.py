@@ -59,8 +59,9 @@ def alphabet(cl):
     alpha_field = '%s__istartswith' % field_name
     alpha_lookup = cl.params.get(alpha_field, '')
     link = lambda d: cl.get_query_string(d)
+    db_table = getattr(cl.model_admin, 'alphabet_filter_table', cl.model._meta.db_table)
     
-    letters_used = _get_available_letters(field_name, cl.model._meta.db_table)
+    letters_used = _get_available_letters(field_name, db_table)
     all_letters = list(_get_default_letters(cl.model_admin) | letters_used)
     all_letters.sort()
     
@@ -92,6 +93,7 @@ class AlphabetFilterNode(Node):
         self.filtered = filtered
     
     def render(self, context):
+        from nephila import logger
         try:
             qset = self.qset.resolve(context)
         except VariableDoesNotExist:
@@ -112,7 +114,8 @@ class AlphabetFilterNode(Node):
             qstring_items = request.GET.copy()
             if alpha_field in qstring_items:
                 qstring_items.pop(alpha_field)
-            qstring = "&amp;".join(["%s=%s" % (k, v) for k, v in qstring_items])
+            m = ["%s=%s" % (k, v) for k, v in qstring_items.items()]
+            qstring = "&amp;".join(m)+"&amp;"
         else:
             alpha_lookup = ''
             qstring = ''
@@ -123,7 +126,10 @@ class AlphabetFilterNode(Node):
                             field_name, 
                             qset.model._meta.db_table)
         else:
-            letters_used = set([getattr(row,field_name)[0] for row in qset])
+            letters = [getattr(row,field_name)[0] for row in qset]
+            if alpha_lookup == '' and letters is not None:
+                alpha_lookup = letters[0]
+            letters_used = set(letters)
 
         all_letters = list(_get_default_letters(None) | letters_used)
         all_letters.sort()
