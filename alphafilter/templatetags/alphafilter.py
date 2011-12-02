@@ -93,6 +93,7 @@ class AlphabetFilterNode(Node):
         self.filtered = filtered
     
     def render(self, context):
+        from nephila import logger
         try:
             qset = self.qset.resolve(context)
         except VariableDoesNotExist:
@@ -113,7 +114,8 @@ class AlphabetFilterNode(Node):
             qstring_items = request.GET.copy()
             if alpha_field in qstring_items:
                 qstring_items.pop(alpha_field)
-            qstring = "&amp;".join(["%s=%s" % (k, v) for k, v in qstring_items])
+            m = ["%s=%s" % (k, v) for k, v in qstring_items.items()]
+            qstring = "&amp;".join(m)+"&amp;"
         else:
             alpha_lookup = ''
             qstring = ''
