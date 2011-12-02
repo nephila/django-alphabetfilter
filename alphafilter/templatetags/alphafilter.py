@@ -115,7 +115,7 @@ class AlphabetFilterNode(Node):
             if alpha_field in qstring_items:
                 qstring_items.pop(alpha_field)
             m = ["%s=%s" % (k, v) for k, v in qstring_items.items()]
-            qstring = "&amp;".join(m)+"&amp;"
+            qstring = "&amp;".join(m)+"&"
         else:
             alpha_lookup = ''
             qstring = ''
