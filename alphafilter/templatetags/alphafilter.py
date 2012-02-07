@@ -93,6 +93,7 @@ class AlphabetFilterNode(Node):
         self.filtered = filtered
     
     def render(self, context):
+        from django.conf import settings
         try:
             qset = self.qset.resolve(context)
         except VariableDoesNotExist:
@@ -124,7 +125,10 @@ class AlphabetFilterNode(Node):
                             field_name, 
                             qset.model._meta.db_table)
         else:
-            letters = [getattr(row,field_name)[0] for row in qset]
+            if getattr(settings, 'CASE_SENSITIVE_ALPHABET', True):
+                letters = [getattr(row,field_name)[0] for row in qset]
+            else:
+                letters = [getattr(row,field_name)[0].upper() for row in qset]
             if alpha_lookup == '' and letters is not None:
                 alpha_lookup = letters[0]
             letters_used = set(letters)
